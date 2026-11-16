@@ -1,0 +1,52 @@
+name: Build cops_skin dylib
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Theos
+        uses: actions/checkout@v4
+        with:
+          repository: theos/theos
+          path: theos
+          submodules: recursive
+
+      - name: Download SDK
+        run: |
+          mkdir -p theos/sdks
+          curl -L --retry 5 \
+            "https://github.com/theos/sdks/releases/latest/download/iPhoneOS16.5.sdk.tar.xz" \
+            -o sdk.tar.xz
+          tar -xJf sdk.tar.xz -C theos/sdks
+        env:
+          THEOS: ${{ github.workspace }}/theos
+
+      - name: Install ldid
+        run: brew install ldid
+
+      - name: Build
+        run: make -j$(sysctl -n hw.ncpu)
+        env:
+          THEOS: ${{ github.workspace }}/theos
+
+      - name: Collect dylib
+        run: |
+          mkdir -p artifacts
+          find .theos/obj -name "*.dylib" -exec cp {} artifacts/ \;
+          ls -lah artifacts/
+
+      - name: Upload dylib
+        uses: actions/upload-artifact@v4
+        with:
+          name: cops_skin_dylib
+          path: artifacts/*.dylib
+          retention-days: 7
