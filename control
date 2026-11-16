@@ -1,0 +1,9 @@
+Package: com.you.copsskin
+Name: COPSSkin
+Version: 1.0
+Architecture: iphoneos-arm64
+Description: Critical Ops Skin Changer
+Maintainer: you
+Author: you
+Section: Tweaks
+Depends: mobilesubstrate
